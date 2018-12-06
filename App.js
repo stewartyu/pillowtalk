@@ -7,23 +7,28 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import {Platform, StyleSheet, Text, View, TouchableOpacity, Image} from 'react-native';
 import Video from 'react-native-video';
-
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android:
-    'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
 
 type Props = {};
 export default class App extends Component<Props> {
   constructor(props) {
     super(props);
 
+    this.videos = [
+      {
+        thumbnail: `https://s3.amazonaws.com/casper-sleep-spa-958020687612-us-east-1/pillowtalk/pillow-thumbnail.jpg`,
+        url: `https://s3.amazonaws.com/casper-sleep-spa-958020687612-us-east-1/pillowtalk/pillow.mp4`,
+      },
+      {
+        thumbnail: `https://s3.amazonaws.com/casper-sleep-spa-958020687612-us-east-1/pillowtalk/sheets-thumbnail.jpg`,
+        url: `https://s3.amazonaws.com/casper-sleep-spa-958020687612-us-east-1/pillowtalk/sheets.mp4`,
+      },
+    ];
+
     this.state = {
       isVideoPlaying: false,
+      currentVideo: 0,
     };
 
     this.closeVideo = this.closeVideo.bind(this);
@@ -36,9 +41,10 @@ export default class App extends Component<Props> {
     });
   }
 
-  selectVideo() {
+  selectVideo(i) {
     this.setState({
       isVideoPlaying: true,
+      currentVideo: i,
     });
   }
 
@@ -47,31 +53,44 @@ export default class App extends Component<Props> {
       return null;
     }
 
-    const video = 'https://d270gkllvn2eew.cloudfront.net/wave/PDP_wave2_D01.mp4';
-
     return (
-      <TouchableOpacity onPress={this.closeVideo} style={styles.video}>
-        <Video
-          source={{uri: video}}
-          style={styles.video}
-        />
-      </TouchableOpacity>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={this.closeVideo} style={styles.video}>
+          <Video
+            source={{uri: this.videos[this.state.currentVideo].url}}
+            style={styles.video}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  renderList() {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.welcome}>Pillowtalk</Text>
+        <View style={styles.image}>
+          {this.videos.map((video, i) => {
+            return (
+              <TouchableOpacity
+                key={video.thumbnail}
+                onPress={this.selectVideo.bind(this, i)}
+                style={styles.image}
+              >
+                <Image
+                  source={{uri: video.thumbnail}}
+                  style={styles.image}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
     );
   }
 
   render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>Pillowtalk</Text>
-        <Text
-          onPress={this.selectVideo}
-          style={styles.welcome}
-        >
-          Click to play video
-        </Text>
-        {this.renderVideo()}
-      </View>
-    );
+    return this.state.isVideoPlaying ? this.renderVideo() : this.renderList();
   }
 }
 
@@ -82,10 +101,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  image: {
+    width: '100%',
+    height: '62.5%',
   },
   video: {
     width: '100%',
